@@ -37,7 +37,7 @@ install_deps () {
   #            linux/386, linux/arm/v7, linux/arm/v6
   sudo apt-get update -q -y
   sudo apt-get -qq install -y qemu qemu-user-static
-  podman run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  sudo podman run --rm --privileged multiarch/qemu-user-static --reset -p yes
 }
 
 build_container () {
@@ -95,7 +95,7 @@ run_container () {
   # The location of the event.json file
   EVENT_DIR=$(dirname "$GITHUB_EVENT_PATH")
 
-  podman run \
+  sudo podman run \
     --workdir "${GITHUB_WORKSPACE}" \
     --rm \
     -e DEBIAN_FRONTEND=noninteractive \
