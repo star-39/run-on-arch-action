@@ -45,13 +45,7 @@ build_container () {
 
   # If the GITHUB_TOKEN env var has a value, the container images will be
   # cached between builds.
-  if [[ -z "${GITHUB_TOKEN:-}" ]]
-  then
-    buildah bud \
-      "${ACTION_DIR}/Dockerfiles" \
-      --file "$DOCKERFILE" \
-      --tag "${CONTAINER_NAME}:latest"
-  else
+
     # Build optimization that uses GitHub package registry to cache docker
     # images, based on Thai Pangsakulyanont's experiments.
     # Read about it: https://dev.to/dtinth/caching-docker-builds-in-github-actions-which-approach-is-the-fastest-a-research-18ei
@@ -67,15 +61,14 @@ build_container () {
       --password-stdin
     set "$BASH_FLAGS"
 
-    buildah pull "$PACKAGE_REGISTRY:latest" || true
-    buildah bud \
+    docker pull "$PACKAGE_REGISTRY:latest" || true
+    docker build \
       "${ACTION_DIR}/Dockerfiles" \
       --file "$DOCKERFILE" \
       --tag "${CONTAINER_NAME}:latest" \
       --cache-from="$PACKAGE_REGISTRY"
-    buildah tag "${CONTAINER_NAME}:latest" "$PACKAGE_REGISTRY" \
-      && buildah push "$PACKAGE_REGISTRY" || true
-  fi
+    docker tag "${CONTAINER_NAME}:latest" "$PACKAGE_REGISTRY" \
+      && docker push "$PACKAGE_REGISTRY" || true
 }
 
 run_container () {
