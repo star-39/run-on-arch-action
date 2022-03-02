@@ -122,7 +122,7 @@ run_container () {
     -v "${ACTION_DIR}:${ACTION_DIR}" \
     --tty \
     ${DOCKER_RUN_ARGS[@]} \
-    "${CONTAINER_NAME}:latest" \
+    "${PACKAGE_REGISTRY}:latest" \
     "${ACTION_DIR}/src/run-on-arch-commands.sh"
 }
 
