@@ -37,7 +37,7 @@ install_deps () {
   #            linux/386, linux/arm/v7, linux/arm/v6
   sudo apt-get update -q -y
   sudo apt-get -qq install -y qemu qemu-user-static
-  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  podman run --rm --privileged multiarch/qemu-user-static --reset -p yes
 }
 
 build_container () {
@@ -47,7 +47,7 @@ build_container () {
   # cached between builds.
   if [[ -z "${GITHUB_TOKEN:-}" ]]
   then
-    docker build \
+    buildah bud \
       "${ACTION_DIR}/Dockerfiles" \
       --file "$DOCKERFILE" \
       --tag "${CONTAINER_NAME}:latest"
@@ -67,14 +67,14 @@ build_container () {
       --password-stdin
     set "$BASH_FLAGS"
 
-    docker pull "$PACKAGE_REGISTRY:latest" || true
-    docker build \
+    buildah pull "$PACKAGE_REGISTRY:latest" || true
+    buildah bud \
       "${ACTION_DIR}/Dockerfiles" \
       --file "$DOCKERFILE" \
       --tag "${CONTAINER_NAME}:latest" \
       --cache-from="$PACKAGE_REGISTRY"
-    docker tag "${CONTAINER_NAME}:latest" "$PACKAGE_REGISTRY" \
-      && docker push "$PACKAGE_REGISTRY" || true
+    buildah tag "${CONTAINER_NAME}:latest" "$PACKAGE_REGISTRY" \
+      && buildah push "$PACKAGE_REGISTRY" || true
   fi
 }
 
@@ -95,7 +95,7 @@ run_container () {
   # The location of the event.json file
   EVENT_DIR=$(dirname "$GITHUB_EVENT_PATH")
 
-  docker run \
+  podman run \
     --workdir "${GITHUB_WORKSPACE}" \
     --rm \
     -e DEBIAN_FRONTEND=noninteractive \
@@ -124,7 +124,6 @@ run_container () {
     -e RUNNER_TEMP \
     -e RUNNER_TOOL_CACHE \
     -e RUNNER_WORKSPACE \
-    -v "/var/run/docker.sock:/var/run/docker.sock" \
     -v "${EVENT_DIR}:${EVENT_DIR}" \
     -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
     -v "${ACTION_DIR}:${ACTION_DIR}" \
